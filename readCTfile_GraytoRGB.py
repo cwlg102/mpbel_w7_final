@@ -26,6 +26,9 @@ for top, dir, file in os.walk(folder_path):
         CT_voxel[k] = pixel_rgb #그레이 스케일 복셀 -> RGB로 바꾸어야...
         
     break
+voxelnp = np.load('brainstem_voxel.npy')
+CT_voxel = CT_voxel + voxelnp
+
 #np.save('CT_voxel_scaled', CT_voxel)
 window = plt.figure(figsize = (20, 32))
 n_cols = 6
@@ -34,5 +37,5 @@ print(len(pic))
 for idx in range(len(pic)):
     #window.add_subplot(n_rows, n_cols, idx+1)
     plt.imshow(CT_voxel[idx])
-    plt.show()
     #plt.savefig('CT%d' %idx)
+    plt.show()

@@ -17,9 +17,9 @@ all_ctr = pic[0].ROIContourSequence #ROIContourSequence로 Contour 좌표 불러
 
 ctr_volume_coord = [] #일단은 리스트로
 #내분점 #좌표끼리 거리마다 weight 주는 방법
-
+zzz = []
 for _slice in range(200):
-    try:ctr_coord_1dim = all_ctr[17].ContourSequence[_slice].ContourData #슬라이스 넘기면서 Contour좌표데이터 가져옴
+    try:ctr_coord_1dim = all_ctr[0].ContourSequence[_slice].ContourData #슬라이스 넘기면서 Contour좌표데이터 가져옴
     except:break
 
     #ctr_color = all_ctr[0].ROIDisplayColor #색깔 불러오기
@@ -27,7 +27,7 @@ for _slice in range(200):
 
     
     for idx in range(0, len(ctr_coord_1dim), 3): #1차원적 데이터인 ContourData를 3차원으로(데이터는 3의 배수이므로 다음과같이)
-
+        
         #현재 점 추가.
         coord_arr = np.append(coord_arr, 
         [[(round((ctr_coord_1dim[idx]))), (round((ctr_coord_1dim[idx+1]))), (round((ctr_coord_1dim[idx+2])))]],
@@ -60,61 +60,47 @@ for _slice in range(200):
     coord_arr = np.delete(coord_arr, 0, axis = 0) #zeros로 coord_arr의 head에 더미를 만들었으니, 맨앞은 0, 0, 0이라 삭제해주어야함.
     coord_arr = np.unique(coord_arr, axis = 0) #float 계산에 round롤 하므로 겹치는 점을 삭제.
     ctr_volume_coord.append(coord_arr) #ctr_volume_coord에 좌표 정보가 정리된 2차원 array를 추가함.
-
-
+print(len(ctr_volume_coord))
 
 #voxelnp값에 하나하나씩 지정.
 voxelnp = np.zeros((150, 512, 512, 3)) #(z, y, x)순서, 150, 512, 512 복셀화.(3은 유색화)
 
-zcoord = [] #contour출력을 위해 zcoord 만들어 놓기
+ #contour출력을 위해 zcoord 만들어 놓기
 
 #넘파이 array는 양의 정수로 인덱싱해야하므로 좌표 변환이 필요.
-for _slice in ctr_volume_coord: #voxelnp에 -등으로 되어있는,혹은 범위밖의 좌표값 보정하여 넣어줌.
-    Z = abs(_slice[0][2])
-    zcoord.append(Z)
-if max(zcoord) - min(zcoord) > 150: 
-    print('voxelnp size 수정 필요')
-    quit()
 
-zmid = (min(zcoord)+max(zcoord))//2 #양의 값으로 변환 시킨 z값들 중 중점을 구함
-trf_coeff = zmid -  75 #zcoord의 중점을, 150의 가운데로 옮겨줄수 있는 값을 구함(z의 최대 좌표-최소 좌표 < 150이어야 이런 변환 가능)
-for i in range(len(zcoord)): 
-    zcoord[i] -= trf_coeff #모든 값에 대해 위에서 구한 trf_coeff를 빼줌
-
-#위에서 변환한 좌표로 voxel만들어주기
 for idx, _slice in enumerate(ctr_volume_coord):
     for point_idx in range(len(_slice)):
-        voxelnp[int(zcoord[idx])][int(abs(_slice[point_idx][1]))][int(_slice[point_idx][0])+256] = np.array([1, 1, 1])
-#np.save('brain_stem_voxel', voxelnp)
+        try:voxelnp[int(_slice[point_idx][2])//3 + 170][int(_slice[point_idx][1]+459)][int(_slice[point_idx][0]+255)] = \
+            np.array([255/255, 255/255, 0/255])
+        except:break
 
-#for idx in range(len(zcoord)):
-#    dy = [1, -1, 0, 0]
-#    dx = [0, 0, 1, -1]
-#    queue = deque()
-#    ctrdot = np.where(voxelnp[int(zcoord[idx])]== 255)
-#    y1, x1 = ctrdot[0][0], ctrdot[1][0]
-#    y2, x2 = ctrdot[0][len(ctrdot[0])-1], ctrdot[1][len(ctrdot[1])-1]
-#    center_y = (y1+y2)//2
-#    center_x = (x1+x2)//2
-#    queue.append((center_y, center_x))
-#    while queue:
-#        y, x = queue.popleft()
-#        for dir in range(4):
-#            ny = y + dy[dir]
-#            nx = x + dx[dir]
-#            if ny < 0 or nx < 0 or nx >= 512 or ny >= 512:
-#                continue
-#            if voxelnp[int(zcoord[idx])][ny][nx] == 255:
-#                continue
-#            else:
-#                voxelnp[int(zcoord[idx])][ny][nx] = 255
-#                queue.append((ny, nx))
+#zmid = (min(zcoord)+max(zcoord))//2 #양의 값으로 변환 시킨 z값들 중 중점을 구함
+#trf_coeff = zmid -  75 #zcoord의 중점을, 150의 가운데로 옮겨줄수 있는 값을 구함(z의 최대 좌표-최소 좌표 < 150이어야 이런 변환 가능)
+#for i in range(len(zcoord)): 
+#    zcoord[i] -= trf_coeff #모든 값에 대해 위에서 구한 trf_coeff를 빼줌
+#
+##위에서 변환한 좌표로 voxel만들어주기
+#for idx, _slice in enumerate(ctr_volume_coord):
+#    for point_idx in range(len(_slice)):
+#        voxelnp[149-int(zcoord[idx])][511-int(abs(_slice[point_idx][1]))][int(_slice[point_idx][0])+256] = \
+#        np.array([255/255, 255/255, 0/255])
+        
+
+np.save('brainstem_voxel', voxelnp)
 
 #만든 voxel로 슬라이스마다 contour 출력
+zc = np.where(voxelnp != 0) #Data 형이 뭔지 고려해주고
+zcoord = []
+for i in range(len(zc[0])):
+    zcoord.append(int(zc[0][i]))
+zcoord = list(set(zcoord))
+
+print(voxelnp.shape)
 axes = [] 
-fig = plt.figure(figsize = (19, 19))
+fig = plt.figure(figsize = (17, 17))
 for idx, image in enumerate(zcoord):
-    axes.append(fig.add_subplot(6, 10, idx+1))
+    axes.append(fig.add_subplot(6, 8, idx+1)) #바깥루프의 축길이가 얼마나 되는지 고려해서
     subplot_title=("slice"+str(idx+1))
     axes[-1].set_title(subplot_title)
     plt.imshow(voxelnp[int(image)]) 
