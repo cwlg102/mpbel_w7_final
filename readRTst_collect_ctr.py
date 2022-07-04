@@ -19,13 +19,12 @@ ctr_volume_coord = [] #일단은 리스트로
 #내분점 #좌표끼리 거리마다 weight 주는 방법
 zzz = []
 for _slice in range(200):
-    try:ctr_coord_1dim = all_ctr[0].ContourSequence[_slice].ContourData #슬라이스 넘기면서 Contour좌표데이터 가져옴
+    try:ctr_coord_1dim = all_ctr[9].ContourSequence[_slice].ContourData #슬라이스 넘기면서 Contour좌표데이터 가져옴
     except:break
 
     #ctr_color = all_ctr[0].ROIDisplayColor #색깔 불러오기
     coord_arr = np.zeros((1, 3)) #미리 슬라이스의 좌표를 추가 할 array 만들어 놓고
 
-    
     for idx in range(0, len(ctr_coord_1dim), 3): #1차원적 데이터인 ContourData를 3차원으로(데이터는 3의 배수이므로 다음과같이)
         
         #현재 점 추가.
@@ -43,7 +42,8 @@ for _slice in range(200):
         except: xiplus, yiplus, ziplus = float(ctr_coord_1dim[0]), float(ctr_coord_1dim[1]), float(ctr_coord_1dim[2])
         
         #내분 계수, 70이상으로 잡을 시 채우는 점/ 걸리는 시간의 비율이 매우매우낮아진다. 5이상 70이하가 유효하게 쓸만한 범위.
-        indiv_coeff = 10
+        #9에서 왜끊기지? 
+        indiv_coeff = 30
         largedist = ((xi - xiplus)**2 + (yi - yiplus)**2 + (zi - ziplus)**2) ** 0.5
         if largedist < 1: #만약 길이 차이가 적게나서 1보다 작을 때 largedist를 기본 내분 갯수에 곱하면 내분 갯수가 기본보다 작아짐.
             largedist = 1 #따라서 길이 차이가 적다면 largedist를 1로.
@@ -71,8 +71,10 @@ voxelnp = np.zeros((150, 512, 512, 3)) #(z, y, x)순서, 150, 512, 512 복셀화
 
 for idx, _slice in enumerate(ctr_volume_coord):
     for point_idx in range(len(_slice)):
-        try:voxelnp[int(_slice[point_idx][2])//3 + 170][int(_slice[point_idx][1]+459)][int(_slice[point_idx][0]+255)] = \
+        try:voxelnp[int(_slice[point_idx][2])//3 + 170][int(_slice[point_idx][1]/0.9766)+468][int(_slice[point_idx][0]/0.9766)+256] = \
             np.array([255/255, 255/255, 0/255])
+            ##################|기준좌표|/resolution -> 넘파이에 넣을 좌표에 더할값##########################
+            
         except:break
 
 #zmid = (min(zcoord)+max(zcoord))//2 #양의 값으로 변환 시킨 z값들 중 중점을 구함
