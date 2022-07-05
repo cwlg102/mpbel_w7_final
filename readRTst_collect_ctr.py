@@ -15,14 +15,18 @@ for top, dir, file in os.walk(folder_path):
 
 all_ctr = pic[0].ROIContourSequence #ROIContourSequence로 Contour 좌표 불러올 수 있음.
 
-ctr_volume_coord = [] #일단은 리스트로
+ #일단은 리스트로
 #내분점 #좌표끼리 거리마다 weight 주는 방법
+voxelnp = np.zeros((150, 512, 512, 3))
 for ctrs in range(24):
+    print(ctrs+1)
+    ctr_volume_coord = []
     ctr_coord_1dim = []
     coord_arr = []
     R = int(all_ctr[ctrs].ROIDisplayColor[0])
     G = int(all_ctr[ctrs].ROIDisplayColor[1])
     B = int(all_ctr[ctrs].ROIDisplayColor[2])
+    print(R, G, B)
     for _slice in range(200):
         try:ctr_coord_1dim = all_ctr[ctrs].ContourSequence[_slice].ContourData #슬라이스 넘기면서 Contour좌표데이터 가져옴
         except:break
@@ -42,6 +46,7 @@ for ctrs in range(24):
             xi, yi, zi = float(ctr_coord_1dim[idx]/0.9766+255.49017), float(ctr_coord_1dim[idx+1]/0.9766+468.473991), float(ctr_coord_1dim[idx+2]/3+169.3333)
 
             #다음 인덱스 - 위의 인덱스에서 3씩 추가한 값
+            ##################|기준좌표|/resolution -> 넘파이에 넣을 좌표에 더할값##########################
             try:xiplus, yiplus, ziplus = float(ctr_coord_1dim[idx+3]/0.9766+255.49017), float(ctr_coord_1dim[idx+4]/0.9766+468.473991), float(ctr_coord_1dim[idx+5]/3+169.3333) 
             #####예외, xi, yi, zi가 마지막 일경우, 그냥 pass하면 안되고 첫번째 점과 연결을 시켜주어야함.#####
             except: xiplus, yiplus, ziplus = float(ctr_coord_1dim[0]/0.9766+255.49017), float(ctr_coord_1dim[1]/0.9766+468.473991), float(ctr_coord_1dim[2]/3+169.3333)
@@ -65,10 +70,9 @@ for ctrs in range(24):
         coord_arr = np.delete(coord_arr, 0, axis = 0) #zeros로 coord_arr의 head에 더미를 만들었으니, 맨앞은 0, 0, 0이라 삭제해주어야함.
         coord_arr = np.unique(coord_arr, axis = 0) #float 계산에 round롤 하므로 겹치는 점을 삭제.
         ctr_volume_coord.append(coord_arr) #ctr_volume_coord에 좌표 정보가 정리된 2차원 array를 추가함.
-    print(len(ctr_volume_coord))
 
     #voxelnp값에 하나하나씩 지정.
-    voxelnp = np.zeros((150, 512, 512, 3)) #(z, y, x)순서, 150, 512, 512 복셀화.(3은 유색화)
+    #voxelnp = np.zeros((150, 512, 512, 3)) #(z, y, x)순서, 150, 512, 512 복셀화.(3은 유색화)
 
      #contour출력을 위해 zcoord 만들어 놓기
 
@@ -76,16 +80,17 @@ for ctrs in range(24):
 
     for idx, _slice in enumerate(ctr_volume_coord):
         for point_idx in range(len(_slice)):
-            try:voxelnp[round(_slice[point_idx][2])+1][round(_slice[point_idx][1])][round(_slice[point_idx][0])] = \
+            
+            try:voxelnp[round(_slice[point_idx][2])][round(_slice[point_idx][1])][round(_slice[point_idx][0])] = \
                 np.array([R/255, G/255, B/255])
                 ##################|기준좌표|/resolution -> 넘파이에 넣을 좌표에 더할값##########################  
             except:break
 
 
-    np.save('D:\CodeMaster\w7voxels\p001rtst_1\p001voxel%d' %(ctrs+1), voxelnp)
+#np.save('D:\CodeMaster\w7voxels\p001rtst\p001voxel_ctr', voxelnp)
 
 #만든 voxel로 슬라이스마다 contour 출력
-output = 0
+output = 1
 if output == 0:
     quit()
 zc = np.where(voxelnp != 0) #Data 형이 뭔지 고려해주고
@@ -98,7 +103,7 @@ print(voxelnp.shape)
 axes = [] 
 fig = plt.figure(figsize = (17, 17))
 for idx, image in enumerate(zcoord):
-    axes.append(fig.add_subplot(6, 8, idx+1)) #바깥루프의 축길이가 얼마나 되는지 고려해서
+    axes.append(fig.add_subplot(9, 12, idx+1)) #바깥루프의 축길이가 얼마나 되는지 고려해서
     subplot_title=("slice"+str(idx+1))
     axes[-1].set_title(subplot_title)
     plt.imshow(voxelnp[int(image)]) 
