@@ -61,7 +61,6 @@ all_ctr = pic[0].ROIContourSequence #ROIContourSequence로 Contour 좌표 불러
 zsize = int(CT_folder_path[-10:-7])
 voxelnp = np.zeros((zsize, 512, 512, 3))
 for ctrs in range(30):
-    
     ctr_volume_coord = []
     ctr_coord_1dim = []
     coord_arr = []

@@ -41,10 +41,10 @@ for i in range(len(fileidx)):
     sorted_filename_list.append(filename_list[fileorder[i]])
 
 #file정렬
-det = pydicom.dcmread(folder_path + '/' + sorted_filename_list[0])
+determine_company = pydicom.dcmread(folder_path + '/' + sorted_filename_list[0])
 window_center = -1000
 window_width = 6000
-if det.Manufacturer == 'TOSHIBA':
+if determine_company.Manufacturer == 'TOSHIBA':
     window_center = -1200
     window_width = 4000
     for i in range(len(sorted_filename_list)):
@@ -52,23 +52,23 @@ if det.Manufacturer == 'TOSHIBA':
         pic.append(ds)
         s = int(ds.RescaleSlope)
         b = int(ds.RescaleIntercept)
-        tmp = s * ds.pixel_array + b#largepixelvalue로 나눠줌.
+        temp_slice = s * ds.pixel_array + b#largepixelvalue로 나눠줌.
 
         ds.WindowCenter = window_center
         ds.WindowWidth = window_width
-        tmp = apply_modality_lut(tmp, ds)
-        tmp = apply_voi_lut(tmp, ds)
+        temp_slice = apply_modality_lut(temp_slice, ds)
+        temp_slice = apply_voi_lut(temp_slice, ds)
 
-        pixel_rgb = np.stack((tmp, ) * 3, axis = -1) #그레이 스케일 복셀 -> RGB로 바꾸어야...
+        pixel_rgb = np.stack((temp_slice, ) * 3, axis = -1) #그레이 스케일 복셀 -> RGB로 바꾸어야...
         CT_voxel[i] = pixel_rgb
 
-else: #SIEMENS일때,,, 자체 windowing
+elif determine_company.Manufacturer == 'SIEMENS': #SIEMENS일때,,, 자체 windowing
     for i in range(len(sorted_filename_list)):
         ds = pydicom.dcmread(folder_path + '/' + sorted_filename_list[i])
         pic.append(ds)
         
-        tmp = ds.pixel_array #largepixelvalue로 나눠줌.
-        pixel_rgb = np.stack((tmp, ) * 3, axis = -1) #그레이 스케일 복셀 -> RGB로 바꾸어야...
+        temp_slice = ds.pixel_array #largepixelvalue로 나눠줌.
+        pixel_rgb = np.stack((temp_slice, ) * 3, axis = -1) #그레이 스케일 복셀 -> RGB로 바꾸어야...
         CT_voxel[i] = pixel_rgb
     CT_voxel /= 4095
     CT_voxel *= 65535
